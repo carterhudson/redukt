@@ -82,4 +82,7 @@ lint/tmp/
 # lint/reports/
 
 #kotlintest
-Lib/.kotlintest
+lib/.kotlintest
+
+#android test
+lib/src/androidTest
