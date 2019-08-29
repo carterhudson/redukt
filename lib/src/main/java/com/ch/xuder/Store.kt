@@ -58,7 +58,7 @@ data class Store<StateT>(
    * subscribers of new [Transition]s
    */
   val dispatch: (Any) -> Unit = { action: Any ->
-    reducers.map { reducer ->
+    reducers.forEach { reducer ->
       with(reducer(action, state)) {
         state = toState
         subscribers.forEach { it(this) }
