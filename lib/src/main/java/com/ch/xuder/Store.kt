@@ -27,6 +27,7 @@ data class Store<StateT>(
   val initialState: StateT,
   val reducers: List<Reducer<StateT>>
 ) {
+
   /**
    * Represents the state machine's output. Reducers remain pure by packaging
    * [toState] and [sideEffects] into the object.
@@ -36,23 +37,24 @@ data class Store<StateT>(
     vararg val sideEffects: Any
   )
 
-  var state: StateT = initialState
-    private set
-
+  private var state: StateT = initialState
   private val subscribers: MutableList<Subscriber<StateT>> = mutableListOf()
 
   /**
-   * Adds [subscriber] to the list of [subscribers] and returns a
-   * [Subscription] that can be used to [Subscription.unsubscribe]
+   * Adds [onTransition] to the list of [subscribers], emits the latest state as a [Transition],
+   * and returns a [Subscription] that can be used to [Subscription.unsubscribe]
    */
-  fun subscribe(subscriber: (state: Transition<StateT>) -> Unit): Subscription =
-    subscribers.add(subscriber).let {
-      object : Subscription {
-        override fun unsubscribe() {
-          subscribers.remove(subscriber)
+  fun subscribe(onTransition: (transition: Transition<StateT>) -> Unit): Subscription =
+    subscribers
+      .add(onTransition)
+      .also { onTransition(Transition(state)) }
+      .let {
+        object : Subscription {
+          override fun unsubscribe() {
+            subscribers.remove(onTransition)
+          }
         }
       }
-    }
 
   /**
    * Receives actions. Feeds each action to [reducers] and notifies

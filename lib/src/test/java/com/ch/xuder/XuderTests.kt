@@ -33,8 +33,14 @@ class XuderTests : StringSpec({
   "increment increases count by one" {
     val store = createStore()
 
+    var count = 0
     store.subscribe {
-      it.toState.count shouldBe 1
+      (count == 0).ifTrue {
+        it.toState.count shouldBe 0
+      }.ifFalse {
+        it.toState.count shouldBe 1
+      }
+      count++
     }
 
     store.dispatch(INCREMENT)
@@ -62,5 +68,15 @@ class XuderTests : StringSpec({
         }
       }
     }
+  }
+
+  "subscriber receives latest state on subscription" {
+    val store = createStore()
+    var count = 0
+    store.subscribe {
+      it.toState.count shouldBe 0
+      count++
+    }
+    count shouldBe 1
   }
 })
