@@ -21,10 +21,10 @@ class XuderTests : StringSpec({
     return Store(
       TestState(), listOf { action, state ->
         when (action) {
-          INCREMENT -> Transition(state.copy(count = state.count + 1))
-          DECREMENT -> Transition(state.copy(count = state.count - 1))
-          INCREMENT_ASYNC -> Transition(state, INCREMENT_SIDE_EFFECT)
-          else -> Transition(state)
+          INCREMENT -> Store.Transition(state.copy(count = state.count + 1))
+          DECREMENT -> Store.Transition(state.copy(count = state.count - 1))
+          INCREMENT_ASYNC -> Store.Transition(state, INCREMENT_SIDE_EFFECT)
+          else -> Store.Transition(state)
         }
       }
     )

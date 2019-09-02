@@ -1,15 +1,6 @@
 package com.ch.xuder
 
 /**
- * Represents the state machine's output. Reducers remain pure by packaging
- * [toState] and [sideEffects] into the object.
- */
-class Transition<StateT>(
-  val toState: StateT,
-  vararg val sideEffects: Any
-)
-
-/**
  * Represents a subscription to the [Store] and contains logic necessary
  * to [unsubscribe]
  */
@@ -19,14 +10,14 @@ interface Subscription {
 
 /**
  * Represents a pure function responsible for calculating state changes and
- * producing a [Transition] for subscribers to consume.
+ * producing a [Store.Transition] for subscribers to consume.
  */
-typealias Reducer<StateT> = (action: Any, state: StateT) -> Transition<StateT>
+typealias Reducer<StateT> = (action: Any, state: StateT) -> Store.Transition<StateT>
 
 /**
- * Represents an active receiver of [Transition]s
+ * Represents an active receiver of [Store.Transition]s
  */
-typealias Subscriber<StateT> = (Transition<StateT>) -> Unit
+typealias Subscriber<StateT> = (Store.Transition<StateT>) -> Unit
 
 /**
  * The single source of truth for application state. Contains a list of [subscribers]
@@ -36,8 +27,18 @@ data class Store<StateT>(
   val initialState: StateT,
   val reducers: List<Reducer<StateT>>
 ) {
+  /**
+   * Represents the state machine's output. Reducers remain pure by packaging
+   * [toState] and [sideEffects] into the object.
+   */
+  class Transition<StateT>(
+    val toState: StateT,
+    vararg val sideEffects: Any
+  )
 
-  private var state: StateT = initialState
+  var state: StateT = initialState
+    private set
+
   private val subscribers: MutableList<Subscriber<StateT>> = mutableListOf()
 
   /**
