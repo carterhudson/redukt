@@ -60,7 +60,7 @@ class XuderTests : StringSpec({
           it.toState.count shouldBe 1
         }
 
-      it.sideEffects.forEach { sideEffect ->
+      it.commands.forEach { sideEffect ->
         when (sideEffect) {
           INCREMENT_SIDE_EFFECT -> {
             store.dispatch(INCREMENT)
