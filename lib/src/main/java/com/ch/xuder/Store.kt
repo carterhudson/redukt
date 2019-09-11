@@ -36,7 +36,7 @@ data class Store<StateT>(
    * Represents the state machine's output. Reducers remain pure by packaging
    * [toState] and [commands] into the object.
    */
-  class Transition<StateT>(
+  open class Transition<StateT>(
     val toState: StateT,
     vararg val commands: Any
   )
