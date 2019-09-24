@@ -1,5 +1,5 @@
-# xuder
-[![](https://jitpack.io/v/carterhudson/xuder.svg)](https://jitpack.io/#carterhudson/xuder)
+# redukt
+[![](https://jitpack.io/v/carterhudson/redukt.svg)](https://jitpack.io/#carterhudson/redukt)
 
 Redux adaptation with managed side-effects instead of middleware
 

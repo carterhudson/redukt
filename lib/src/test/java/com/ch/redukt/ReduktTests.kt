@@ -1,5 +1,6 @@
-package com.ch.xuder
+package com.ch.redukt
 
+import com.ch.redukt.Event
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 
@@ -8,12 +9,17 @@ import io.kotlintest.specs.StringSpec
  *
  * See [testing documentation](http://d.android.com/tools/testing).
  */
-class XuderTests : StringSpec({
+sealed class CounterEvent : Event {
+  object IncrementRequested : CounterEvent()
+  object DecrementRequested : CounterEvent()
+  object IncrementAsyncRquested: CounterEvent()
+}
 
-  val INCREMENT = "increment"
-  val INCREMENT_ASYNC = "increment_async"
-  val DECREMENT = "decrement"
-  val INCREMENT_SIDE_EFFECT = "increment_side_effect"
+sealed class CounterCommand: Command {
+  object IncrementAsync : CounterCommand()
+}
+
+class ReduktTests : StringSpec({
 
   data class TestState(val count: Int = 0)
 
@@ -21,9 +27,9 @@ class XuderTests : StringSpec({
     return Store(
       TestState(), listOf { action, state ->
         when (action) {
-          INCREMENT -> Store.Transition(state.copy(count = state.count + 1))
-          DECREMENT -> Store.Transition(state.copy(count = state.count - 1))
-          INCREMENT_ASYNC -> Store.Transition(state, INCREMENT_SIDE_EFFECT)
+          CounterEvent.IncrementRequested -> Store.Transition(state.copy(count = state.count + 1))
+          CounterEvent.DecrementRequested -> Store.Transition(state.copy(count = state.count - 1))
+          CounterEvent.IncrementAsyncRquested -> Store.Transition(state, CounterCommand.IncrementAsync)
           else -> Store.Transition(state)
         }
       }
@@ -43,7 +49,7 @@ class XuderTests : StringSpec({
       count++
     }
 
-    store.dispatch(INCREMENT)
+    store.dispatch(CounterEvent.IncrementRequested)
   }
 
   "side effect increments count by one" {
@@ -60,10 +66,10 @@ class XuderTests : StringSpec({
           it.toState.count shouldBe 1
         }
 
-      it.commands.forEach { sideEffect ->
-        when (sideEffect) {
-          INCREMENT_SIDE_EFFECT -> {
-            store.dispatch(INCREMENT)
+      it.commands.forEach { command ->
+        when (command) {
+          CounterCommand.IncrementAsync -> {
+            store.dispatch(CounterEvent.IncrementRequested)
           }
         }
       }

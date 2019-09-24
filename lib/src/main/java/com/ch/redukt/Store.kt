@@ -1,4 +1,4 @@
-package com.ch.xuder
+package com.ch.redukt
 
 /**
  * Represents a subscription to the [Store] and contains logic necessary
@@ -12,7 +12,7 @@ interface Subscription {
  * Represents a pure function responsible for calculating state changes and
  * producing a [Store.Transition] for subscribers to consume.
  */
-typealias Reduce<StateT> = (action: Any, state: StateT) -> Store.Transition<StateT>
+typealias Reduce<StateT> = (event: Event, state: StateT) -> Store.Transition<StateT>
 
 /**
  * Represents an active receiver of [Store.Transition]s
@@ -22,11 +22,11 @@ typealias Subscribe<StateT> = (Store.Transition<StateT>) -> Unit
 /**
  * Represents a dispatch function
  */
-typealias Dispatch = (Any) -> Unit
+typealias Dispatch = (Event) -> Unit
 
 /**
  * The single source of truth for application state. Contains a list of [subscribers]
- * and receives [dispatch]ed actions.
+ * and receives [dispatch]ed events.
  */
 data class Store<StateT>(
   val initialState: StateT,
@@ -38,7 +38,7 @@ data class Store<StateT>(
    */
   open class Transition<StateT>(
     val toState: StateT,
-    vararg val commands: Any
+    vararg val commands: Command
   )
 
   var state: StateT = initialState
@@ -63,10 +63,10 @@ data class Store<StateT>(
       }
 
   /**
-   * Receives actions. Feeds each action to [reducers] and notifies
+   * Receives events. Feeds each event to [reducers] and notifies
    * subscribers of new [Transition]s
    */
-  val dispatch: Dispatch = { event: Any ->
+  val dispatch: Dispatch = { event: Event ->
     reducers.forEach { reduce ->
       with(reduce(event, state)) {
         state = toState
