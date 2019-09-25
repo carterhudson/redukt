@@ -31,7 +31,7 @@ typealias Dispatch = (Event) -> Unit
 data class Store<StateT>(
   val initialState: StateT,
   val reducers: List<Reduce<StateT>>
-) {
+) : Dispatcher, Observable<StateT>{
   /**
    * Represents the state machine's output. Reducers remain pure by packaging
    * [toState] and [commands] into the object.
@@ -50,7 +50,7 @@ data class Store<StateT>(
    * Adds [onTransition] to the list of [subscribers], emits the latest state as a [Transition],
    * and returns a [Subscription] that can be used to [Subscription.unsubscribe]
    */
-  fun subscribe(onTransition: (transition: Transition<StateT>) -> Unit): Subscription =
+  override fun subscribe(onTransition: (transition: Transition<StateT>) -> Unit): Subscription =
     subscribers
       .add(onTransition)
       .also { onTransition(Transition(state)) }
@@ -66,7 +66,7 @@ data class Store<StateT>(
    * Receives events. Feeds each event to [reducers] and notifies
    * subscribers of new [Transition]s
    */
-  val dispatch: Dispatch = { event: Event ->
+  override val dispatch: Dispatch = { event: Event ->
     reducers.forEach { reduce ->
       with(reduce(event, state)) {
         state = toState
