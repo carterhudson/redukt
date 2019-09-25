@@ -1,6 +1,5 @@
 package com.ch.redukt
 
-import com.ch.redukt.Event
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.StringSpec
 
@@ -12,10 +11,10 @@ import io.kotlintest.specs.StringSpec
 sealed class CounterEvent : Event {
   object IncrementRequested : CounterEvent()
   object DecrementRequested : CounterEvent()
-  object IncrementAsyncRquested: CounterEvent()
+  object IncrementAsyncRquested : CounterEvent()
 }
 
-sealed class CounterCommand: Command {
+sealed class CounterCommand : Command {
   object IncrementAsync : CounterCommand()
 }
 
@@ -29,7 +28,10 @@ class ReduktTests : StringSpec({
         when (action) {
           CounterEvent.IncrementRequested -> Store.Transition(state.copy(count = state.count + 1))
           CounterEvent.DecrementRequested -> Store.Transition(state.copy(count = state.count - 1))
-          CounterEvent.IncrementAsyncRquested -> Store.Transition(state, CounterCommand.IncrementAsync)
+          CounterEvent.IncrementAsyncRquested -> Store.Transition(
+            state,
+            CounterCommand.IncrementAsync
+          )
           else -> Store.Transition(state)
         }
       }

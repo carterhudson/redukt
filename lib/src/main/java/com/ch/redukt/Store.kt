@@ -20,11 +20,6 @@ typealias Reduce<StateT> = (event: Event, state: StateT) -> Store.Transition<Sta
 typealias Subscribe<StateT> = (Store.Transition<StateT>) -> Unit
 
 /**
- * Represents a dispatch function
- */
-typealias Dispatch = (Event) -> Unit
-
-/**
  * The single source of truth for application state. Contains a list of [subscribers]
  * and receives [dispatch]ed events.
  */
