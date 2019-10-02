@@ -1,40 +1,13 @@
 package com.ch.redukt
 
 /**
- * Represents a subscription to the [Store] and contains logic necessary
- * to [unsubscribe]
- */
-interface Subscription {
-  fun unsubscribe()
-}
-
-/**
- * Represents a pure function responsible for calculating state changes and
- * producing a [Store.Transition] for subscribers to consume.
- */
-typealias Reduce<StateT> = (event: Event, state: StateT) -> Store.Transition<StateT>
-
-/**
- * Represents an active receiver of [Store.Transition]s
- */
-typealias Subscribe<StateT> = (Store.Transition<StateT>) -> Unit
-
-/**
  * The single source of truth for application state. Contains a list of [subscribers]
  * and receives [dispatch]ed events.
  */
 data class Store<StateT>(
-  val initialState: StateT,
-  val reducers: List<Reduce<StateT>>
-) : Dispatcher, Observable<StateT>{
-  /**
-   * Represents the state machine's output. Reducers remain pure by packaging
-   * [toState] and [commands] into the object.
-   */
-  open class Transition<StateT>(
-    val toState: StateT,
-    vararg val commands: Command
-  )
+  private val initialState: StateT,
+  private val reducers: MutableSet<Reduce<StateT>>
+) : Dispatcher, Observable<StateT> {
 
   var state: StateT = initialState
     private set
@@ -48,7 +21,6 @@ data class Store<StateT>(
   override fun subscribe(onTransition: (transition: Transition<StateT>) -> Unit): Subscription =
     subscribers
       .add(onTransition)
-      .also { onTransition(Transition(state)) }
       .let {
         object : Subscription {
           override fun unsubscribe() {
@@ -69,4 +41,18 @@ data class Store<StateT>(
       }
     }
   }
+
+  fun addReducer(reducer: Reduce<StateT>): Boolean =
+    reducers
+      .add(reducer)
+      .also {
+        println("[$reducer] was ${if (!it) "[NOT]" else ""} added")
+      }
+
+  fun removeReducer(reducer: Reduce<StateT>): Boolean =
+    reducers
+      .remove(reducer)
+      .also {
+        println("[$reducer] was ${if (!it) "[NOT]" else ""} removed")
+      }
 }
