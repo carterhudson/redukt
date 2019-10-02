@@ -9,82 +9,91 @@ import io.kotlintest.specs.StringSpec
  * See [testing documentation](http://d.android.com/tools/testing).
  */
 sealed class CounterEvent : Event {
+  object ResetRequested : CounterEvent()
   object IncrementRequested : CounterEvent()
   object DecrementRequested : CounterEvent()
-  object IncrementAsyncRquested : CounterEvent()
+  object IncrementAsCommandRequested : CounterEvent()
 }
 
 sealed class CounterCommand : Command {
-  object IncrementAsync : CounterCommand()
+  object Increment : CounterCommand()
 }
 
 class ReduktTests : StringSpec({
 
-  data class TestState(val count: Int = 0)
+  data class CounterState(val count: Int = 0)
 
-  fun createStore(): Store<TestState> {
+  fun createStore(): Store<CounterState> {
     return Store(
-      TestState(), listOf { action, state ->
+      CounterState(), mutableSetOf({ action, state ->
         when (action) {
-          CounterEvent.IncrementRequested -> Store.Transition(state.copy(count = state.count + 1))
-          CounterEvent.DecrementRequested -> Store.Transition(state.copy(count = state.count - 1))
-          CounterEvent.IncrementAsyncRquested -> Store.Transition(
+          CounterEvent.IncrementRequested -> Transition(state.copy(count = state.count + 1))
+          CounterEvent.DecrementRequested -> Transition(state.copy(count = state.count - 1))
+          CounterEvent.IncrementAsCommandRequested -> Transition(
             state,
-            CounterCommand.IncrementAsync
+            CounterCommand.Increment
           )
-          else -> Store.Transition(state)
+          else -> Transition(state)
         }
-      }
+      })
     )
   }
 
   "increment increases count by one" {
-    val store = createStore()
-
-    var count = 0
-    store.subscribe {
-      (count == 0).ifTrue {
-        it.toState.count shouldBe 0
-      }.ifFalse {
-        it.toState.count shouldBe 1
-      }
-      count++
+    with(createStore()) {
+      state.count shouldBe 0
+      dispatch(CounterEvent.IncrementRequested)
+      state.count shouldBe 1
     }
-
-    store.dispatch(CounterEvent.IncrementRequested)
   }
 
-  "side effect increments count by one" {
-    val store = createStore()
-
-    var iteration = 0
-    store.subscribe {
-      (iteration == 0)
-        .ifTrue {
-          it.toState.count shouldBe 0
-          iteration++
-        }
-        .ifFalse {
-          it.toState.count shouldBe 1
-        }
-
-      it.commands.forEach { command ->
-        when (command) {
-          CounterCommand.IncrementAsync -> {
-            store.dispatch(CounterEvent.IncrementRequested)
+  "side effect should increment count by one" {
+    var commandReceived = false
+    with(createStore()) {
+      subscribe {
+        it.commands.forEach { command ->
+          when (command) {
+            CounterCommand.Increment -> {
+              commandReceived = true
+              dispatch(CounterEvent.IncrementRequested)
+            }
           }
         }
       }
+
+      state.count shouldBe 0
+      dispatch(CounterEvent.IncrementRequested)
+      state.count shouldBe 1
+      dispatch(CounterEvent.IncrementAsCommandRequested)
+      state.count shouldBe 2
+      commandReceived shouldBe true
     }
   }
 
-  "subscriber receives latest state on subscription" {
-    val store = createStore()
-    var count = 0
-    store.subscribe {
-      it.toState.count shouldBe 0
-      count++
+  "can add and remove reducer to change behavior" {
+    with(createStore()) {
+      val resetReducer: Reduce<CounterState> = { event, state ->
+        when (event) {
+          is CounterEvent.ResetRequested -> Transition(state.copy(count = 0))
+          else -> Transition(state)
+        }
+      }
+
+      removeReducer(resetReducer) shouldBe false
+      state.count shouldBe 0
+      dispatch(CounterEvent.IncrementRequested)
+      state.count shouldBe 1
+      dispatch(CounterEvent.ResetRequested)
+      state.count shouldBe 1
+      addReducer(resetReducer) shouldBe true
+      dispatch(CounterEvent.ResetRequested)
+      state.count shouldBe 0
+      dispatch(CounterEvent.IncrementRequested)
+      state.count shouldBe 1
+      removeReducer(resetReducer) shouldBe true
+      dispatch(CounterEvent.ResetRequested)
+      state.count shouldBe 1
+      removeReducer(resetReducer) shouldBe false
     }
-    count shouldBe 1
   }
 })

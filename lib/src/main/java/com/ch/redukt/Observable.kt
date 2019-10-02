@@ -2,5 +2,5 @@ package com.ch.redukt
 
 
 interface Observable<StateT> {
-  fun subscribe(onTransition: (transition: Store.Transition<StateT>) -> Unit) : Subscription
+  fun subscribe(onTransition: (transition: Transition<StateT>) -> Unit) : Subscription
 }
