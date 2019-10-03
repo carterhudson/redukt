@@ -7,7 +7,7 @@ package com.ch.redukt
 data class Store<StateT>(
   private val initialState: StateT,
   private val reducers: MutableSet<Reduce<StateT>>
-) : Dispatcher, Observable<StateT> {
+) : Dispatcher, Observable<StateT>, ReducerContainer<StateT> {
 
   var state: StateT = initialState
     private set
@@ -42,14 +42,14 @@ data class Store<StateT>(
     }
   }
 
-  fun addReducer(reducer: Reduce<StateT>): Boolean =
+  override fun addReducer(reducer: Reduce<StateT>): Boolean =
     reducers
       .add(reducer)
       .also {
         println("[$reducer] was ${if (!it) "[NOT]" else ""} added")
       }
 
-  fun removeReducer(reducer: Reduce<StateT>): Boolean =
+  override fun removeReducer(reducer: Reduce<StateT>): Boolean =
     reducers
       .remove(reducer)
       .also {
