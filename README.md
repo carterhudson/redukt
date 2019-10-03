@@ -8,6 +8,8 @@ Kotlin Redux adaptation with managed side-effects instead of middleware
 
 I made this to supplement another project; features and tweaks added as needed. 
 
+Examples forthcoming.
+
 ```
 MIT License
 
