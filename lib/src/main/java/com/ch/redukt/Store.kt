@@ -42,17 +42,7 @@ data class Store<StateT>(
     }
   }
 
-  override fun addReducer(reducer: Reduce<StateT>): Boolean =
-    reducers
-      .add(reducer)
-      .also {
-        println("[$reducer] was ${if (!it) "[NOT]" else ""} added")
-      }
+  override fun addReducer(reducer: Reduce<StateT>): Boolean = reducers.add(reducer)
 
-  override fun removeReducer(reducer: Reduce<StateT>): Boolean =
-    reducers
-      .remove(reducer)
-      .also {
-        println("[$reducer] was ${if (!it) "[NOT]" else ""} removed")
-      }
+  override fun removeReducer(reducer: Reduce<StateT>): Boolean = reducers.remove(reducer)
 }
