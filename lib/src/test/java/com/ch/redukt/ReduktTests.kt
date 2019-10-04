@@ -31,7 +31,7 @@ class ReduktTests : StringSpec({
           CounterEvent.DecrementRequested -> Transition(state.copy(count = state.count - 1))
           CounterEvent.IncrementAsCommandRequested -> Transition(
             state,
-            CounterCommand.Increment
+            CounterCommand.Increment.singletonList()
           )
           else -> Transition(state)
         }
