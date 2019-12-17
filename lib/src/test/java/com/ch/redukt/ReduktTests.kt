@@ -31,7 +31,7 @@ class ReduktTests : StringSpec({
           CounterEvent.DecrementRequested -> Transition(state.copy(count = state.count - 1))
           CounterEvent.IncrementAsCommandRequested -> Transition(
             state,
-            CounterCommand.Increment
+            CounterCommand.Increment.singletonList()
           )
           else -> Transition(state)
         }
@@ -94,6 +94,28 @@ class ReduktTests : StringSpec({
       dispatch(CounterEvent.ResetRequested)
       state.count shouldBe 1
       removeReducer(resetReducer) shouldBe false
+    }
+  }
+
+  "temporal reducer" {
+    with(createStore()) {
+      val resetReducer: Reduce<CounterState> = { event, state ->
+        when (event) {
+          is CounterEvent.ResetRequested -> Transition(state.copy(count = 0))
+          else -> Transition(state)
+        }
+      }
+
+      addReducer(TemporalReducer(resetReducer, state))
+      state.count shouldBe 0
+      dispatch(CounterEvent.IncrementRequested)
+      state.count shouldBe 1
+      dispatch(CounterEvent.ResetRequested)
+      state.count shouldBe 0
+      dispatch(TemporalEvent.Undo)
+      state.count shouldBe 1
+      dispatch(TemporalEvent.Redo)
+      state.count shouldBe 0
     }
   }
 })

@@ -18,3 +18,5 @@ fun Boolean.ifFalse(block: () -> Unit): Boolean {
 
   return this
 }
+
+fun <ThisT> ThisT.singletonList() = listOf(this)
