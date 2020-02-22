@@ -33,9 +33,9 @@ data class Store<StateT>(
    * Receives events. Feeds each event to [reducers] and notifies
    * subscribers of new [Transition]s
    */
-  override val dispatch: Dispatch = { event: Event ->
+  override val dispatch: Dispatch = { action: Action ->
     reducers.forEach { reduce ->
-      with(reduce(event, state)) {
+      with(reduce(action, state)) {
         state = toState
         subscribers.forEach { it(this) }
       }

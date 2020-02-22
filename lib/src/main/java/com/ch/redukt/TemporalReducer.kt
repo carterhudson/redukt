@@ -1,9 +1,8 @@
 package com.ch.redukt
 
-sealed class TemporalEvent : Event {
-  object UndefinedEvent : TemporalEvent()
-  object Undo : TemporalEvent()
-  object Redo : TemporalEvent()
+sealed class TemporalAction : Action {
+  object Undo : TemporalAction()
+  object Redo : TemporalAction()
 }
 
 class TemporalReducer<StateT>(
@@ -12,12 +11,12 @@ class TemporalReducer<StateT>(
 ) : Reduce<StateT> {
 
   private var past: MutableList<StateT> = mutableListOf()
-  private var present: StateT = reduce(TemporalEvent.UndefinedEvent, initialState).toState
+  private var present: StateT = initialState
   private var future: MutableList<StateT> = mutableListOf()
 
-  override fun invoke(event: Event, state: StateT): Transition<StateT> {
-    return when (event) {
-      is TemporalEvent.Undo -> {
+  override fun invoke(action: Action, state: StateT): Transition<StateT> {
+    return when (action) {
+      is TemporalAction.Undo -> {
         future.add(present)
         present = past.last()
         past.isEmpty().not().ifTrue { past.dropLast(1) }
@@ -25,7 +24,7 @@ class TemporalReducer<StateT>(
         return Transition(present)
       }
 
-      is TemporalEvent.Redo -> {
+      is TemporalAction.Redo -> {
         past.add(present)
         present = future.last()
         future.isEmpty().not().ifTrue { future.dropLast(1) }
@@ -34,7 +33,7 @@ class TemporalReducer<StateT>(
       }
 
       else -> {
-        reduce(event, state).also {
+        reduce(action, state).also {
           future = mutableListOf()
           past.add(present)
           present = it.toState
