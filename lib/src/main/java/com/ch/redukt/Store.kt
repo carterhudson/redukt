@@ -12,7 +12,7 @@ interface Subscription {
  * Represents a pure function responsible for calculating state changes and
  * producing a [Store.Transition] for subscribers to consume.
  */
-typealias Reduce<StateT> = (event: Event, state: StateT) -> Store.Transition<StateT>
+typealias Reduce<StateT> = (action: Action, state: StateT) -> Store.Transition<StateT>
 
 /**
  * Represents an active receiver of [Store.Transition]s
@@ -21,7 +21,7 @@ typealias Subscribe<StateT> = (Store.Transition<StateT>) -> Unit
 
 /**
  * The single source of truth for application state. Contains a list of [subscribers]
- * and receives [dispatch]ed events.
+ * and receives [dispatch]ed actions.
  */
 data class Store<StateT>(
   val initialState: StateT,
@@ -58,12 +58,12 @@ data class Store<StateT>(
       }
 
   /**
-   * Receives events. Feeds each event to [reducers] and notifies
+   * Receives actions. Feeds each action to [reducers] and notifies
    * subscribers of new [Transition]s
    */
-  override val dispatch: Dispatch = { event: Event ->
+  override val dispatch: Dispatch = { action: Action ->
     reducers.forEach { reduce ->
-      with(reduce(event, state)) {
+      with(reduce(action, state)) {
         state = toState
         subscribers.forEach { it(this) }
       }
