@@ -1,4 +1,4 @@
 package com.ch.redukt
 
 
-interface Event
+interface Action
